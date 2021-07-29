@@ -4,6 +4,7 @@ import com.dio.beerstock.DTO.BeerDTOBuilder;
 import com.dio.beerstock.dto.BeerDTO;
 import com.dio.beerstock.entity.Beer;
 import com.dio.beerstock.exception.BeerAlreadyRegisteredException;
+import com.dio.beerstock.exception.BeerNotFoundException;
 import com.dio.beerstock.mapper.BeerMapper;
 import com.dio.beerstock.repository.BeerRepository;
 import org.junit.jupiter.api.Test;
@@ -73,4 +74,31 @@ public class BeerServiceTest {
         // Then
         assertThrows(BeerAlreadyRegisteredException.class, () -> beerService.createBeer(expectedbeerDTO));
     }
+
+    @Test
+    void whenValidBeerNameIsGivenThenReturnABeer() throws BeerNotFoundException {
+        BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        Beer expectedFoundBeer = beerMapper.toModel(expectedFoundBeerDTO);
+
+        when(beerRepository.findByName(expectedFoundBeer.getName())).thenReturn(Optional.of(expectedFoundBeer));
+
+        BeerDTO foundBeerDTO = beerService.findByName(expectedFoundBeer.getName());
+
+        assertThat(foundBeerDTO, is(equalTo(expectedFoundBeerDTO)));
+    }
+
+    @Test
+    void whenNotRegistredBeerNameIsGivenThenReturn() throws BeerNotFoundException {
+        // Given
+        BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+
+        // When - Mockar
+        when(beerRepository.findByName(expectedFoundBeerDTO.getName())).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(BeerNotFoundException.class, () -> beerService.findByName(expectedFoundBeerDTO.getName()));
+    }
+
+
+
 }
